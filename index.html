@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<title>らいとら デモ</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+
+body{
+font-family:sans-serif;
+text-align:center;
+background:#f5f5f5;
+}
+
+.box{
+background:white;
+padding:20px;
+margin:20px;
+border-radius:10px;
+}
+
+button{
+padding:10px 20px;
+font-size:16px;
+}
+
+#map{
+height:400px;
+margin:20px;
+}
+
+#arrow{
+font-size:40px;
+display:inline-block;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>らいとら（デモ版）</h1>
+
+<div id="map"></div>
+
+<div class="box">
+
+現在地：<span id="location">取得前</span><br>
+最寄り駅：<span id="nearest">未判定</span><br>
+距離：<span id="distance">未計算</span><br>
+コンパス：<span id="direction">未取得</span><br>
+駅の方向：<span id="arrow">↑</span>
+
+</div>
+
+<div class="box">
+
+乗車駅：
+<select id="start"></select>
+
+<br><br>
+
+降車駅：
+<select id="goal"></select>
+
+<br><br>
+
+<button onclick="showFare()">料金を表示</button>
+
+</div>
+
+<div class="box">
+料金：<span id="fare">未表示</span>
+</div>
+
+<button onclick="getLocation()">現在地を取得</button>
+
+<script>
+
+
+// 地図
+
+let map = L.map('map').setView([33.5509,133.5018],17);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+attribution:'© OpenStreetMap'
+}).addTo(map);
+
+
+
+// 駅データ
+
+const stations=[
+
+{name:"東門",lat:33.5499943,lon:133.5026105},
+{name:"大階段",lat:33.5506271,lon:133.5018015},
+{name:"１－７Ｈ前",lat:33.5505489,lon:133.5008752},
+{name:"給食搬入口",lat:33.5514637,lon:133.5010321},
+{name:"調理室前",lat:33.5509088,lon:133.5012969},
+{name:"ロータリー",lat:33.5509074,lon:133.5019494},
+{name:"正門",lat:33.5510101,lon:133.5021368}
+
+];
+
+
+
+// 駅マーカー
+
+stations.forEach(st=>{
+L.marker([st.lat,st.lon]).addTo(map).bindPopup(st.name);
+});
+
+
+
+// 路線
+
+let route=stations.map(s=>[s.lat,s.lon]);
+
+L.polyline(route,{color:"blue",weight:5}).addTo(map);
+
+
+
+// 電車
+
+let train=L.marker(route[0]).addTo(map).bindPopup("🚋電車（シミュレーション）");
+
+let i=0;
+
+setInterval(function(){
+
+train.setLatLng(route[i]);
+
+i++;
+
+if(i>=route.length){i=0;}
+
+},10000);
+
+
+
+// Haversine距離
+
+function getDistance(lat1,lon1,lat2,lon2){
+
+const R=6371000;
+
+const dLat=(lat2-lat1)*Math.PI/180;
+const dLon=(lon2-lon1)*Math.PI/180;
+
+const a=
+Math.sin(dLat/2)*Math.sin(dLat/2)+
+Math.cos(lat1*Math.PI/180)*
+Math.cos(lat2*Math.PI/180)*
+Math.sin(dLon/2)*Math.sin(dLon/2);
+
+const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+
+return R*c;
+
+}
+
+
+
+// プルダウン生成
+
+const startSelect=document.getElementById("start");
+const goalSelect=document.getElementById("goal");
+
+stations.forEach(st=>{
+
+let o1=document.createElement("option");
+o1.text=st.name;
+startSelect.add(o1);
+
+let o2=document.createElement("option");
+o2.text=st.name;
+goalSelect.add(o2);
+
+});
+
+
+
+let currentLat,currentLon;
+let nearestStation;
+
+
+
+// GPS取得
+
+function getLocation(){
+
+navigator.geolocation.getCurrentPosition(function(pos){
+
+currentLat=pos.coords.latitude;
+currentLon=pos.coords.longitude;
+
+document.getElementById("location").innerText=
+currentLat.toFixed(5)+","+currentLon.toFixed(5);
+
+L.marker([currentLat,currentLon]).addTo(map).bindPopup("現在地");
+
+map.setView([currentLat,currentLon],17);
+
+findNearest();
+
+});
+
+}
+
+
+
+// 最寄り駅
+
+function findNearest(){
+
+let minDist=Infinity;
+
+stations.forEach(st=>{
+
+let dist=getDistance(currentLat,currentLon,st.lat,st.lon);
+
+if(dist<minDist){
+
+minDist=dist;
+nearestStation=st;
+
+}
+
+});
+
+document.getElementById("nearest").innerText=nearestStation.name;
+document.getElementById("distance").innerText=Math.round(minDist)+" m";
+
+}
+
+
+
+// 駅方向
+
+function getBearing(lat1,lon1,lat2,lon2){
+
+let y=Math.sin((lon2-lon1)*Math.PI/180)*Math.cos(lat2*Math.PI/180);
+
+let x=
+Math.cos(lat1*Math.PI/180)*Math.sin(lat2*Math.PI/180)-
+Math.sin(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.cos((lon2-lon1)*Math.PI/180);
+
+let brng=Math.atan2(y,x)*180/Math.PI;
+
+return(brng+360)%360;
+
+}
+
+
+
+// コンパス
+
+window.addEventListener("deviceorientation",function(event){
+
+if(!nearestStation)return;
+
+let phoneDir=360-event.alpha;
+
+let stationDir=getBearing(currentLat,currentLon,nearestStation.lat,nearestStation.lon);
+
+let arrowDir=stationDir-phoneDir;
+
+document.getElementById("arrow").style.transform="rotate("+arrowDir+"deg)";
+
+
+
+let text="";
+
+if(phoneDir<22.5)text="北";
+else if(phoneDir<67.5)text="北東";
+else if(phoneDir<112.5)text="東";
+else if(phoneDir<157.5)text="南東";
+else if(phoneDir<202.5)text="南";
+else if(phoneDir<247.5)text="南西";
+else if(phoneDir<292.5)text="西";
+else if(phoneDir<337.5)text="北西";
+else text="北";
+
+document.getElementById("direction").innerText=text;
+
+});
+
+
+
+// 仮料金
+
+const fares={
+
+"東門-大階段":10,
+"東門-１－７Ｈ前":20,
+"東門-給食搬入口":30,
+"東門-調理室前":40,
+"東門-ロータリー":50,
+"東門-正門":60,
+
+"大階段-東門":10,
+"大階段-１－７Ｈ前":10,
+"大階段-給食搬入口":20,
+"大階段-調理室前":30,
+"大階段-ロータリー":40,
+"大階段-正門":50,
+
+"１－７Ｈ前-東門":20,
+"１－７Ｈ前-大階段":10,
+"１－７Ｈ前-給食搬入口":10,
+"１－７Ｈ前-調理室前":20,
+"１－７Ｈ前-ロータリー":30,
+"１－７Ｈ前-正門":40,
+
+"給食搬入口-東門":30,
+"給食搬入口-大階段":20,
+"給食搬入口-１－７Ｈ前":10,
+"給食搬入口-調理室前":10,
+"給食搬入口-ロータリー":20,
+"給食搬入口-正門":30,
+
+"調理室前-東門":40,
+"調理室前-大階段":30,
+"調理室前-１－７Ｈ前":20,
+"調理室前-給食搬入口":10,
+"調理室前-ロータリー":10,
+"調理室前-正門":20,
+
+"ロータリー-東門":50,
+"ロータリー-大階段":40,
+"ロータリー-１－７Ｈ前":30,
+"ロータリー-給食搬入口":20,
+"ロータリー-調理室前":10,
+"ロータリー-正門":10,
+
+"正門-東門":60,
+"正門-大階段":50,
+"正門-１－７Ｈ前":40,
+"正門-給食搬入口":30,
+"正門-調理室前":20,
+"正門-ロータリー":10
+
+};
+
+
+
+function showFare(){
+
+const start=startSelect.value;
+const goal=goalSelect.value;
+
+const key=start+"-"+goal;
+
+if(fares[key]){
+
+document.getElementById("fare").innerText=fares[key]+"円";
+
+}else{
+
+document.getElementById("fare").innerText="設定なし";
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
