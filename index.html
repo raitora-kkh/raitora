@@ -3,7 +3,7 @@
 <head>
 
 <meta charset="UTF-8">
-<title>らいとら デモ</title>
+<title>らいとら</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -33,18 +33,13 @@ height:400px;
 margin:20px;
 }
 
-#arrow{
-font-size:40px;
-display:inline-block;
-}
-
 </style>
 
 </head>
 
 <body>
 
-<h1>らいとら（デモ版）</h1>
+<h1>らいとら</h1>
 
 <div id="map"></div>
 
@@ -52,11 +47,12 @@ display:inline-block;
 
 現在地：<span id="location">取得前</span><br>
 最寄り駅：<span id="nearest">未判定</span><br>
-距離：<span id="distance">未計算</span><br>
-コンパス：<span id="direction">未取得</span><br>
-駅の方向：<span id="arrow">↑</span>
+距離：<span id="distance">未取得</span><br>
+方位：<span id="direction">未取得</span>
+<div class="arrow" id="arrow">↑</div>
 
 </div>
+
 
 <div class="box">
 
@@ -89,7 +85,7 @@ let map = L.map('map').setView([33.5509,133.5018],17);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
 attribution:'© OpenStreetMap'
-}).addTo(map);
+}).addTo(map)
 
 
 
@@ -97,13 +93,13 @@ attribution:'© OpenStreetMap'
 
 const stations=[
 
-{name:"東門",lat:33.5499943,lon:133.5026105},
-{name:"大階段",lat:33.5506271,lon:133.5018015},
-{name:"１－７Ｈ前",lat:33.5505489,lon:133.5008752},
-{name:"給食搬入口",lat:33.5514637,lon:133.5010321},
-{name:"調理室前",lat:33.5509088,lon:133.5012969},
-{name:"ロータリー",lat:33.5509074,lon:133.5019494},
-{name:"正門",lat:33.5510101,lon:133.5021368}
+{name:"東門",lat:33.5598,lon:133.5441},
+{name:"大階段",lat:33.5600,lon:133.5442},
+{name:"１－７Ｈ前",lat:33.5602,lon:133.5443},
+{name:"給食搬入口",lat:33.5603,lon:133.5445},
+{name:"調理室前",lat:33.5604,lon:133.5446},
+{name:"ロータリー",lat:33.5605,lon:133.5447},
+{name:"正門",lat:33.5606,lon:133.5448}
 
 ];
 
@@ -194,8 +190,6 @@ let nearestStation;
 
 function getLocation(){
 
-startcompass();
-
 navigator.geolocation.getCurrentPosition(function(pos){
 
 currentLat=pos.coords.latitude;
@@ -204,14 +198,43 @@ currentLon=pos.coords.longitude;
 document.getElementById("location").innerText=
 currentLat.toFixed(5)+","+currentLon.toFixed(5);
 
-L.marker([currentLat,currentLon]).addTo(map).bindPopup("現在地");
-
-map.setView([currentLat,currentLon],17);
-
 findNearest();
+showMap();
 
-});
+},
 
+function(){
+alert("位置情報が取得できません\n設定を確認してください");
+},
+
+{
+enableHighAccuracy:true,
+timeout:10000,
+maximumAge:0
+}
+
+);
+
+}
+
+
+
+let currentMarker = null; // 現在地マーカーを保持する変数
+
+function showMap() {
+// 前のマーカーがあれば削除
+if (currentMarker) {
+map.removeLayer(currentMarker);
+}
+
+// 新しいマーカーを作って追加
+currentMarker = L.marker([currentLat, currentLon])
+.addTo(map)
+.bindPopup("現在地")
+.openPopup();
+
+// 地図の中心を現在地に移動
+map.setView([currentLat, currentLon], 17);
 }
 
 
@@ -219,112 +242,87 @@ findNearest();
 // 最寄り駅
 
 function findNearest(){
+let minDist = Infinity;
+let nearestStation = null;
 
-let minDist=Infinity;
+stations.forEach(st => {
 
-stations.forEach(st=>{
 
-let dist=getDistance(currentLat,currentLon,st.lat,st.lon);
 
-if(dist<minDist){
+// Haversineで距離計算
+let dist = getDistance(currentLat, currentLon, st.lat, st.lon);
 
-minDist=dist;
-nearestStation=st;
-
+if(dist < minDist){
+minDist = dist;
+nearestStation = st;
 }
-
 });
 
-document.getElementById("nearest").innerText=nearestStation.name;
-document.getElementById("distance").innerText=Math.round(minDist)+" m";
 
+
+// 最寄り駅名と距離を表示
+document.getElementById("nearest").innerText = nearestStation.name;
+
+document.getElementById("distance").innerText=Math.round(minDist) + " m";
+
+
+
+// 方位も同時に表示
+showDirection(nearestStation);
 }
 
 
 
-// 駅方向
+// 距離表示
+function showDistance(st){
 
-function getBearing(lat1,lon1,lat2,lon2){
-
-let y=Math.sin((lon2-lon1)*Math.PI/180)*Math.cos(lat2*Math.PI/180);
-
-let x=
-Math.cos(lat1*Math.PI/180)*Math.sin(lat2*Math.PI/180)-
-Math.sin(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.cos((lon2-lon1)*Math.PI/180);
-
-let brng=Math.atan2(y,x)*180/Math.PI;
-
-return(brng+360)%360;
-
-}
-
-
-// コンパス開始（許可取得）
-function startCompass(){
-
-if (typeof DeviceOrientationEvent !== "undefined" &&
-typeof DeviceOrientationEvent.requestPermission === "function") {
-
-DeviceOrientationEvent.requestPermission()
-.then(permissionState => {
-
-if (permissionState === "granted") {
-
-window.addEventListener("deviceorientation", handleOrientation);
-
-}
-
-})
-.catch(console.error);
-
-} else {
-
-window.addEventListener("deviceorientation", handleOrientation);
-
-}
-
-}
-
-
-// コンパス
-
-function handleOrientation(event){
-
-if(!nearestStation)return;
-
-let phoneDir = 360 - event.alpha;
-
-let stationDir = getBearing(
-currentLat,
-currentLon,
-nearestStation.lat,
-nearestStation.lon
+let dist=Math.sqrt(
+Math.pow(currentLat-st.lat,2)+
+Math.pow(currentLon-st.lon,2)
 );
 
-let arrowDir = stationDir - phoneDir;
+let meters=Math.round(dist*111000);
 
-document.getElementById("arrow").style.transform =
-"rotate("+arrowDir+"deg)";
-
-let text="";
-
-if(phoneDir<22.5)text="北";
-else if(phoneDir<67.5)text="北東";
-else if(phoneDir<112.5)text="東";
-else if(phoneDir<157.5)text="南東";
-else if(phoneDir<202.5)text="南";
-else if(phoneDir<247.5)text="南西";
-else if(phoneDir<292.5)text="西";
-else if(phoneDir<337.5)text="北西";
-else text="北";
-
-document.getElementById("direction").innerText=text;
+document.getElementById("distance").innerText=
+meters+"m";
 
 }
 
 
 
-// 仮料金
+// 方位
+function showDirection(st){
+
+let dx=st.lon-currentLon;
+let dy=st.lat-currentLat;
+
+let angle=Math.atan2(dy,dx)*180/Math.PI;
+
+let dir="";
+
+if(angle>-22.5 && angle<=22.5) dir="東";
+else if(angle>22.5 && angle<=67.5) dir="北東";
+else if(angle>67.5 && angle<=112.5) dir="北";
+else if(angle>112.5 && angle<=157.5) dir="北西";
+else if(angle>157.5 || angle<=-157.5) dir="西";
+else if(angle>-157.5 && angle<=-112.5) dir="南西";
+else if(angle>-112.5 && angle<=-67.5) dir="南";
+else if(angle>-67.5 && angle<=-22.5) dir="南東";
+
+document.getElementById("direction").innerText=dir;
+
+}
+
+
+
+// 駅取得
+function getStation(name){
+return stations.find(s=>s.name===name);
+}
+
+
+
+// 料金
 
 const fares={
 
