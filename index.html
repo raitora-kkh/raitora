@@ -257,10 +257,68 @@ return(brng+360)%360;
 }
 
 
+// コンパス開始（許可取得）
+function startCompass(){
+
+if (typeof DeviceOrientationEvent !== "undefined" &&
+typeof DeviceOrientationEvent.requestPermission === "function") {
+
+DeviceOrientationEvent.requestPermission()
+.then(permissionState => {
+
+if (permissionState === "granted") {
+
+window.addEventListener("deviceorientation", handleOrientation);
+
+}
+
+})
+.catch(console.error);
+
+} else {
+
+window.addEventListener("deviceorientation", handleOrientation);
+
+}
+
+}
+
 
 // コンパス
 
-window.addEventListener("deviceorientation",function(event){
+function handleOrientation(event){
+
+if(!nearestStation)return;
+
+let phoneDir = 360 - event.alpha;
+
+let stationDir = getBearing(
+currentLat,
+currentLon,
+nearestStation.lat,
+nearestStation.lon
+);
+
+let arrowDir = stationDir - phoneDir;
+
+document.getElementById("arrow").style.transform =
+"rotate("+arrowDir+"deg)";
+
+let text="";
+
+if(phoneDir<22.5)text="北";
+else if(phoneDir<67.5)text="北東";
+else if(phoneDir<112.5)text="東";
+else if(phoneDir<157.5)text="南東";
+else if(phoneDir<202.5)text="南";
+else if(phoneDir<247.5)text="南西";
+else if(phoneDir<292.5)text="西";
+else if(phoneDir<337.5)text="北西";
+else text="北";
+
+document.getElementById("direction").innerText=text;
+
+}
 
 if(!nearestStation)return;
 
