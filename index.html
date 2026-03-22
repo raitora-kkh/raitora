@@ -194,6 +194,8 @@ let nearestStation;
 
 function getLocation(){
 
+startcompass();
+
 navigator.geolocation.getCurrentPosition(function(pos){
 
 currentLat=pos.coords.latitude;
