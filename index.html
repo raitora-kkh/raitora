@@ -9,7 +9,6 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <style>
-
 body{
 font-family:sans-serif;
 text-align:center;
@@ -33,6 +32,10 @@ height:400px;
 margin:20px;
 }
 
+.arrow{
+font-size:50px;
+transition: transform 0.3s ease;
+}
 </style>
 
 </head>
@@ -44,101 +47,94 @@ margin:20px;
 <div id="map"></div>
 
 <div class="box">
-
-現在地：<span id="location">取得前</span><br>
 最寄り駅：<span id="nearest">未判定</span><br>
 距離：<span id="distance">未取得</span><br>
-
+方位：<span id="direction">未取得</span>
 </div>
 
-
 <div class="box">
-
 乗車駅：
 <select id="start"></select>
-
 <br><br>
-
 降車駅：
 <select id="goal"></select>
-
 <br><br>
-
 <button onclick="showFare()">料金を表示</button>
-
 </div>
 
 <div class="box">
 料金：<span id="fare">未表示</span>
 </div>
 
-<button onclick="getLocation()">現在地を取得</button>
+<button onclick="startTracking()">現在地を取得</button>
 
 <script>
 
-
 // 地図
-
-let map = L.map('map').setView([33.5509,133.5018],17);
+let map = L.map('map').setView([33.5600,133.5445],17);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
 attribution:'© OpenStreetMap'
-}).addTo(map)
-
-
+}).addTo(map);
 
 // 駅データ
-
 const stations=[
-
-{name:"東門",lat:33.5499,lon:133.5026},
-{name:"大階段",lat:33.5506,lon:133.5018},
-{name:"１－７Ｈ前",lat:33.5505,lon:133.5008},
-{name:"給食搬入口",lat:33.5514,lon:133.5010},
-{name:"調理室前",lat:33.5509,lon:133.5012},
-{name:"ロータリー",lat:33.5509,lon:133.5019},
-{name:"正門",lat:33.5510,lon:133.5021}
-
+{name:"東門",lat:33.5598,lon:133.5441},
+{name:"大階段",lat:33.5600,lon:133.5442},
+{name:"１－７Ｈ前",lat:33.5602,lon:133.5443},
+{name:"給食搬入口",lat:33.5603,lon:133.5445},
+{name:"調理室前",lat:33.5604,lon:133.5446},
+{name:"ロータリー",lat:33.5605,lon:133.5447},
+{name:"正門",lat:33.5606,lon:133.5448}
 ];
 
-
-
 // 駅マーカー
-
 stations.forEach(st=>{
 L.marker([st.lat,st.lon]).addTo(map).bindPopup(st.name);
 });
 
-
-
 // 路線
-
 let route=stations.map(s=>[s.lat,s.lon]);
-
 L.polyline(route,{color:"blue",weight:5}).addTo(map);
 
+// 🚋 電車（滑らか移動）
+let trainIcon = L.divIcon({
+html:"🚋",
+className:"",
+iconSize:[30,30]
+});
 
+let train=L.marker(route[0],{icon:trainIcon}).addTo(map);
 
-// 電車
-
-let train=L.marker(route[0]).addTo(map).bindPopup("🚋電車（シミュレーション）");
-
-let i=0;
+let step=0;
 
 setInterval(function(){
 
-train.setLatLng(route[i]);
+let start=route[step];
+let end=route[(step+1)%route.length];
 
-i++;
+let progress=0;
 
-if(i>=route.length){i=0;}
+let interval=setInterval(function(){
 
-},10000);
+progress+=0.05;
 
+let lat=start[0]+(end[0]-start[0])*progress;
+let lon=start[1]+(end[1]-start[1])*progress;
 
+train.setLatLng([lat,lon]);
 
-// Haversine距離
+if(progress>=1){
+clearInterval(interval);
+step++;
+if(step>=route.length) step=0;
+}
 
+},200);
+
+},2000);
+
+// 距離（Haversine）
 function getDistance(lat1,lon1,lat2,lon2){
 
 const R=6371000;
@@ -147,67 +143,43 @@ const dLat=(lat2-lat1)*Math.PI/180;
 const dLon=(lon2-lon1)*Math.PI/180;
 
 const a=
-Math.sin(dLat/2)*Math.sin(dLat/2)+
+Math.sin(dLat/2)**2+
 Math.cos(lat1*Math.PI/180)*
 Math.cos(lat2*Math.PI/180)*
-Math.sin(dLon/2)*Math.sin(dLon/2);
+Math.sin(dLon/2)**2;
 
-const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-
-return R*c;
-
+return 2*R*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-
-
-// プルダウン生成
-
+// プルダウン
 const startSelect=document.getElementById("start");
 const goalSelect=document.getElementById("goal");
 
 stations.forEach(st=>{
-
-let o1=document.createElement("option");
-o1.text=st.name;
-startSelect.add(o1);
-
-let o2=document.createElement("option");
-o2.text=st.name;
-goalSelect.add(o2);
-
+startSelect.add(new Option(st.name));
+goalSelect.add(new Option(st.name));
 });
-
-
-
-let currentLat,currentLon;
-let nearestStation;
-
-
 
 // 現在地
 let currentLat,currentLon,currentMarker;
 
-  
-  
-// GPS取得
+// リアルタイムGPS
+function startTracking(){
 
-function getLocation(){
+navigator.geolocation.watchPosition(
 
-navigator.geolocation.getCurrentPosition(function(pos){
+function(pos){
 
 currentLat=pos.coords.latitude;
 currentLon=pos.coords.longitude;
 
-document.getElementById("location").innerText=
-currentLat.toFixed(5)+","+currentLon.toFixed(5);
-
+updateMap();
 findNearest();
-showMap();
 
 },
 
 function(){
-alert("位置情報が取得できません\n設定を確認してください");
+alert("位置情報が取得できません");
 },
 
 {
@@ -217,187 +189,65 @@ maximumAge:0
 }
 
 );
-
 }
 
+// 地図更新
+function updateMap(){
 
-
-let currentMarker = null; // 現在地マーカーを保持する変数
-
-function showMap() {
-// 前のマーカーがあれば削除
-if (currentMarker) {
+if(currentMarker){
 map.removeLayer(currentMarker);
 }
 
-// 新しいマーカーを作って追加
-currentMarker = L.marker([currentLat, currentLon])
+currentMarker=L.marker([currentLat,currentLon])
 .addTo(map)
-.bindPopup("現在地")
-.openPopup();
+.bindPopup("現在地");
 
-// 地図の中心を現在地に移動
-map.setView([currentLat, currentLon], 17);
+map.setView([currentLat,currentLon],17);
 }
 
-
-
 // 最寄り駅
-
 function findNearest(){
-let minDist = Infinity;
-let nearestStation = null;
 
-stations.forEach(st => {
+let min=Infinity;
+let nearest;
 
+stations.forEach(st=>{
+let d=getDistance(currentLat,currentLon,st.lat,st.lon);
 
-
-// Haversineで距離計算
-let dist = getDistance(currentLat, currentLon, st.lat, st.lon);
-
-if(dist < minDist){
-minDist = dist;
-nearestStation = st;
+if(d<min){
+min=d;
+nearest=st;
 }
 });
 
+document.getElementById("nearest").innerText=nearest.name;
+document.getElementById("distance").innerText=Math.round(min)+" m";
 
-
-// 最寄り駅名と距離を表示
-document.getElementById("nearest").innerText = nearestStation.name;
-
-document.getElementById("distance").innerText=Math.round(minDist) + " m";
-
-
-
-// 方位も同時に表示
-showDirection(nearestStation);
+showDirection(nearest);
 }
-
-
-
-// 距離表示
-function showDistance(st){
-
-let dist=Math.sqrt(
-Math.pow(currentLat-st.lat,2)+
-Math.pow(currentLon-st.lon,2)
-);
-
-let meters=Math.round(dist*111000);
-
-document.getElementById("distance").innerText=
-meters+"m";
-
-}
-
-
-
-// 方位
-function showDirection(st){
-let dx = st.lon - currentLon;
-let dy = st.lat - currentLat;
-
-// atan2の結果を0〜360度に変換
-let angle = Math.atan2(dy, dx) * 180 / Math.PI;
-if(angle < 0) angle += 360;
-
-let dir = "";
-if(angle >= 337.5 || angle < 22.5) dir = "東";
-else if(angle >= 22.5 && angle < 67.5) dir = "北東";
-else if(angle >= 67.5 && angle < 112.5) dir = "北";
-else if(angle >= 112.5 && angle < 157.5) dir = "北西";
-else if(angle >= 157.5 && angle < 202.5) dir = "西";
-else if(angle >= 202.5 && angle < 247.5) dir = "南西";
-else if(angle >= 247.5 && angle < 292.5) dir = "南";
-else if(angle >= 292.5 && angle < 337.5) dir = "南東";
-
-document.getElementById("direction").innerText =dir;
-}
-
-
 
 // 駅取得
 function getStation(name){
 return stations.find(s=>s.name===name);
 }
 
-
-
 // 料金
-
 const fares={
-
-"東門-大階段":10,
-"東門-１－７Ｈ前":20,
-"東門-給食搬入口":30,
-"東門-調理室前":40,
-"東門-ロータリー":50,
-"東門-正門":60,
-
-"大階段-東門":10,
-"大階段-１－７Ｈ前":10,
-"大階段-給食搬入口":20,
-"大階段-調理室前":30,
-"大階段-ロータリー":40,
-"大階段-正門":50,
-
-"１－７Ｈ前-東門":20,
-"１－７Ｈ前-大階段":10,
-"１－７Ｈ前-給食搬入口":10,
-"１－７Ｈ前-調理室前":20,
-"１－７Ｈ前-ロータリー":30,
-"１－７Ｈ前-正門":40,
-
-"給食搬入口-東門":30,
-"給食搬入口-大階段":20,
-"給食搬入口-１－７Ｈ前":10,
-"給食搬入口-調理室前":10,
-"給食搬入口-ロータリー":20,
-"給食搬入口-正門":30,
-
-"調理室前-東門":40,
-"調理室前-大階段":30,
-"調理室前-１－７Ｈ前":20,
-"調理室前-給食搬入口":10,
-"調理室前-ロータリー":10,
-"調理室前-正門":20,
-
-"ロータリー-東門":50,
-"ロータリー-大階段":40,
-"ロータリー-１－７Ｈ前":30,
-"ロータリー-給食搬入口":20,
-"ロータリー-調理室前":10,
-"ロータリー-正門":10,
-
-"正門-東門":60,
-"正門-大階段":50,
-"正門-１－７Ｈ前":40,
-"正門-給食搬入口":30,
-"正門-調理室前":20,
-"正門-ロータリー":10
-
+"東門-大階段":10,"東門-１－７Ｈ前":20,"東門-給食搬入口":30,"東門-調理室前":40,"東門-ロータリー":50,"東門-正門":60,
+"大階段-東門":10,"大階段-１－７Ｈ前":10,"大階段-給食搬入口":20,"大階段-調理室前":30,"大階段-ロータリー":40,"大階段-正門":50,
+"１－７Ｈ前-東門":20,"１－７Ｈ前-大階段":10,"１－７Ｈ前-給食搬入口":10,"１－７Ｈ前-調理室前":20,"１－７Ｈ前-ロータリー":30,"１－７Ｈ前-正門":40,
+"給食搬入口-東門":30,"給食搬入口-大階段":20,"給食搬入口-１－７Ｈ前":10,"給食搬入口-調理室前":10,"給食搬入口-ロータリー":20,"給食搬入口-正門":30,
+"調理室前-東門":40,"調理室前-大階段":30,"調理室前-１－７Ｈ前":20,"調理室前-給食搬入口":10,"調理室前-ロータリー":10,"調理室前-正門":20,
+"ロータリー-東門":50,"ロータリー-大階段":40,"ロータリー-１－７Ｈ前":30,"ロータリー-給食搬入口":20,"ロータリー-調理室前":10,"ロータリー-正門":10,
+"正門-東門":60,"正門-大階段":50,"正門-１－７Ｈ前":40,"正門-給食搬入口":30,"正門-調理室前":20,"正門-ロータリー":10
 };
-
-
 
 function showFare(){
 
-const start=startSelect.value;
-const goal=goalSelect.value;
+const key=startSelect.value+"-"+goalSelect.value;
 
-const key=start+"-"+goal;
-
-if(fares[key]){
-
-document.getElementById("fare").innerText=fares[key]+"円";
-
-}else{
-
-document.getElementById("fare").innerText="設定なし";
-
-}
-
+document.getElementById("fare").innerText=
+fares[key] ? fares[key]+"円" : "設定なし";
 }
 
 </script>
