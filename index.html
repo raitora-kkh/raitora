@@ -48,11 +48,8 @@ margin:20px;
 現在地：<span id="location">取得前</span><br>
 最寄り駅：<span id="nearest">未判定</span><br>
 距離：<span id="distance">未取得</span><br>
-方位：<span id="direction">未取得</span>
-<div class="arrow" id="arrow">↑</div>
 
 </div>
-
 
 <div class="box">
 
@@ -78,14 +75,13 @@ margin:20px;
 
 <script>
 
-
 // 地図
 
 let map = L.map('map').setView([33.5509,133.5018],17);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
 attribution:'© OpenStreetMap'
-}).addTo(map)
+}).addTo(map);
 
 
 
@@ -93,13 +89,13 @@ attribution:'© OpenStreetMap'
 
 const stations=[
 
-{name:"東門",lat:33.5598,lon:133.5441},
-{name:"大階段",lat:33.5600,lon:133.5442},
-{name:"１－７Ｈ前",lat:33.5602,lon:133.5443},
-{name:"給食搬入口",lat:33.5603,lon:133.5445},
-{name:"調理室前",lat:33.5604,lon:133.5446},
-{name:"ロータリー",lat:33.5605,lon:133.5447},
-{name:"正門",lat:33.5606,lon:133.5448}
+{name:"東門",lat:33.5499,lon:133.5026},
+{name:"大階段",lat:33.5506,lon:133.5018},
+{name:"１－７Ｈ前",lat:33.5505,lon:133.5008},
+{name:"給食搬入口",lat:33.5514,lon:133.5010},
+{name:"調理室前",lat:33.5509,lon:133.5012},
+{name:"ロータリー",lat:33.5509,lon:133.5019},
+{name:"正門",lat:33.5510,lon:133.5021}
 
 ];
 
@@ -121,44 +117,42 @@ L.polyline(route,{color:"blue",weight:5}).addTo(map);
 
 
 
-// 電車
+// 🚋 電車アイコン
+let trainIcon = L.divIcon({
+html:"🚋",
+className:"",
+iconSize:[50,50]
+});
 
-let train=L.marker(route[0]).addTo(map).bindPopup("🚋電車（シミュレーション）");
+let train = L.marker(route[0],{icon:trainIcon}).addTo(map);
 
-let i=0;
+let step = 0;
 
 setInterval(function(){
 
-train.setLatLng(route[i]);
+let start = route[step];
+let end = route[(step+1) % route.length];
 
-i++;
+let progress = 0;
 
-if(i>=route.length){i=0;}
+let move = setInterval(function(){
 
-},10000);
+progress += 0.05;
 
+let lat = start[0] + (end[0]-start[0]) * progress;
+let lon = start[1] + (end[1]-start[1]) * progress;
 
+train.setLatLng([lat,lon]);
 
-// Haversine距離
-
-function getDistance(lat1,lon1,lat2,lon2){
-
-const R=6371000;
-
-const dLat=(lat2-lat1)*Math.PI/180;
-const dLon=(lon2-lon1)*Math.PI/180;
-
-const a=
-Math.sin(dLat/2)*Math.sin(dLat/2)+
-Math.cos(lat1*Math.PI/180)*
-Math.cos(lat2*Math.PI/180)*
-Math.sin(dLon/2)*Math.sin(dLon/2);
-
-const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-
-return R*c;
-
+if(progress >= 1){
+clearInterval(move);
+step++;
+if(step >= route.length){step = 0;}
 }
+
+},200);
+
+},2000);
 
 
 
