@@ -97,42 +97,25 @@ L.marker([st.lat,st.lon]).addTo(map).bindPopup(st.name);
 let route=stations.map(s=>[s.lat,s.lon]);
 L.polyline(route,{color:"blue",weight:5}).addTo(map);
 
-// 🚋 電車（滑らか移動）
-let trainIcon = L.divIcon({
-html:"🚋",
-className:"",
-iconSize:[30,30]
-});
 
-let train=L.marker(route[0],{icon:trainIcon}).addTo(map);
 
-let step=0;
+// 電車
+
+let train=L.marker(route[0]).addTo(map).bindPopup("🚋電車（シミュレーション）");
+
+let i=0;
 
 setInterval(function(){
 
-let start=route[step];
-let end=route[(step+1)%route.length];
+train.setLatLng(route[i]);
 
-let progress=0;
+i++;
 
-let interval=setInterval(function(){
+if(i>=route.length){i=0;}
 
-progress+=0.05;
+},10000);
 
-let lat=start[0]+(end[0]-start[0])*progress;
-let lon=start[1]+(end[1]-start[1])*progress;
-
-train.setLatLng([lat,lon]);
-
-if(progress>=1){
-clearInterval(interval);
-step++;
-if(step>=route.length) step=0;
-}
-
-},200);
-
-},2000);
+  
 
 // 距離（Haversine）
 function getDistance(lat1,lon1,lat2,lon2){
