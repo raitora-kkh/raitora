@@ -44,7 +44,7 @@ margin:20px;
 <div id="map"></div>
 
 <div class="box">
-<span id="location"></span><br>
+
 最寄り駅：<span id="nearest">未判定</span><br>
 距離：<span id="distance">未取得</span><br>
 方位：<span id="direction">未取得</span>
@@ -119,8 +119,13 @@ L.polyline(route,{color:"blue",weight:5}).addTo(map);
 
 
 // 電車
+let trainIcon = L.divIcon({
+html:"🚋",
+className:"",
+iconSize:[45,45]
+});
 
-let train=L.marker(route[0]).addTo(map).bindPopup("🚋電車（シミュレーション）");
+let train=L.marker(route[0],{icon:trainIcon}.addTo(map).
 
 let i=0;
 
