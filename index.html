@@ -98,25 +98,6 @@ let route=stations.map(s=>[s.lat,s.lon]);
 L.polyline(route,{color:"blue",weight:5}).addTo(map);
 
 
-
-// 電車
-
-let train=L.marker(route[0]).addTo(map).bindPopup("🚋電車（シミュレーション）");
-
-let i=0;
-
-setInterval(function(){
-
-train.setLatLng(route[i]);
-
-i++;
-
-if(i>=route.length){i=0;}
-
-},10000);
-
-  
-
 // 距離（Haversine）
 function getDistance(lat1,lon1,lat2,lon2){
 
