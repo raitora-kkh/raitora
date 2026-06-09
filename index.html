@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>らいとら</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Tabler Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+  <!-- Leaflet 読み込み -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- 外部CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- ▼ ホーム画面 -->
+<div id="page-home" class="page active">
+
+  <div class="status-bar"></div>
+
+  <div class="app-header">
+    <div class="app-title">
+      <i class="ti ti-tram" style="font-size:24px"></i>
+      <span class="logo">らいとら</span>
+      <button class="lang-btn">EN</button>
+    </div>
+
+    <div class="location-bar">
+      <i class="ti ti-map-pin"></i>
+      <span>現在地：取得中…</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ▼ 経路検索カード -->
+    <div class="search-card">
+
+      <div class="search-label">
+        <i class="ti ti-search"></i> 経路検索
+      </div>
+
+      <div class="search-row">
+        <div class="station-input" onclick="selectStation('from')">
+          <i class="ti ti-circle-dot" style="color:#e65100"></i>
+          <span id="from-station">出発電停</span>
+        </div>
+
+        <div class="swap-btn" onclick="swapStations()">
+          <i class="ti ti-arrows-up-down"></i>
+        </div>
+
+        <div class="station-input" onclick="selectStation('to')">
+          <i class="ti ti-map-pin" style="color:#e65100"></i>
+          <span id="to-station">到着電停</span>
+        </div>
+      </div>
+
+      <!-- ▼ 検索結果 -->
+      <div id="route-result" class="route-result">
+        <div id="next-train-result" class="result-item">
+          <i class="ti ti-train"></i> 次の電車：—
+        </div>
+        <div id="fare-result" class="result-item">
+          <i class="ti ti-cash"></i> 運賃：—
+        </div>
+      </div>
+
+      <button class="search-btn" onclick="searchRoute()">
+        <i class="ti ti-search"></i> 時刻・運賃を調べる
+      </button>
+
+    </div>
+
+    <!-- ▼ クイックアクセス -->
+    <div class="section-label">クイックアクセス</div>
+
+    <div class="quick-grid">
+
+      <!-- 左上：路線図 -->
+      <div class="quick-card" onclick="showPage('map')">
+        <i class="ti ti-route"></i>
+        <div class="q-label">路線図</div>
+        <div class="q-sub">全路線を確認</div>
+      </div>
+
+      <!-- 右上：時刻表 -->
+      <div class="quick-card" onclick="showPage('timetable')">
+        <i class="ti ti-clock"></i>
+        <div class="q-label">時刻表</div>
+        <div class="q-sub">電停ごとの時刻</div>
+      </div>
+
+      <!-- 左下：運賃表 -->
+      <div class="quick-card" onclick="showPage('fare')">
+        <i class="ti ti-cash"></i>
+        <div class="q-label">運賃表</div>
+        <div class="q-sub">区間料金を確認</div>
+      </div>
+
+      <!-- 右下：運行情報 -->
+      <div class="quick-card" onclick="showPage('operation')">
+        <i class="ti ti-alert-triangle"></i>
+        <div class="q-label">運行情報</div>
+        <div class="q-sub">遅延・イベント情報</div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ▼ 電停選択パネル -->
+<div id="picker-overlay" class="picker-overlay" onclick="closePicker()"></div>
+<div id="station-picker" class="picker">
+  <div class="picker-header">電停を選択</div>
+  <div class="picker-list" id="picker-list"></div>
+</div>
+
+<!-- ▼ 地図ページ -->
+<div id="page-map" class="page">
+  <div class="content">
+    
+    <h2>地図</h2>
+
+    <div id="map" style="width:100%; height:400px; background:#ccc;"></div>
+
+    <div class="map-info-panel">
+
+      <div class="map-info-row">
+        <span class="label">現在地</span>
+        <span id="map-current-location" class="value">取得中...</span>
+      </div>
+
+      <div class="map-info-row">
+        <span class="label">最寄り電停</span>
+        <span id="map-nearest-stop" class="value">計算中...</span>
+      </div>
+
+      <div class="map-info-row">
+        <span class="label">徒歩ルート</span>
+        <span id="map-walk-time" class="value">未計算</span>
+      </div>
+
+      <button class="map-nav-button" id="map-nav-button">
+        最寄り電停までナビ開始
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ▼ 時刻表ページ -->
+<div id="page-timetable" class="page">
+  <div class="content">
+    <h2>時刻表</h2>
+  </div>
+</div>
+
+<!-- ▼ 運賃ページ -->
+<div id="page-fare" class="page">
+  <div class="content">
+    <h2>運賃</h2>
+  </div>
+</div>
+
+<!-- ▼ その他ページ -->
+<div id="page-menu" class="page">
+  <div class="content">
+    <h2>その他</h2>
+  </div>
+</div>
+
+<!-- ▼ ボトムナビ -->
+<div class="bottom-nav">
+  <div class="nav-item active" data-page="home" onclick="showPage('home')">
+    <i class="ti ti-home"></i>
+    <span>ホーム</span>
+  </div>
+
+  <div class="nav-item" data-page="map" onclick="showPage('map')">
+    <i class="ti ti-map"></i>
+    <span>地図</span>
+  </div>
+
+  <div class="nav-item" data-page="timetable" onclick="showPage('timetable')">
+    <i class="ti ti-clock"></i>
+    <span>時刻表</span>
+  </div>
+
+  <div class="nav-item" data-page="fare" onclick="showPage('fare')">
+    <i class="ti ti-cash"></i>
+    <span>運賃</span>
+  </div>
+</div>
+
+<!-- ▼ 外部JS -->
+<script src="script.js"></script>
+
+</body>
+</html>
