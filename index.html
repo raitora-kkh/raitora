@@ -38,44 +38,46 @@
 
   <div class="content">
 
-    <!-- ▼ 経路検索カード -->
-    <div class="search-card">
+<!-- ▼ 経路検索カード -->
+<div class="search-card">
 
-      <div class="search-label">
-        <i class="ti ti-search"></i> 経路検索
-      </div>
+  <div class="search-label">
+    <i class="ti ti-search"></i> 経路検索
+  </div>
 
-      <div class="search-row">
-        <div class="station-input" onclick="selectStation('from')">
-          <i class="ti ti-circle-dot" style="color:#e65100"></i>
-          <span id="from-station">出発電停</span>
-        </div>
-
-        <div class="swap-btn" onclick="swapStations()">
-          <i class="ti ti-arrows-up-down"></i>
-        </div>
-
-        <div class="station-input" onclick="selectStation('to')">
-          <i class="ti ti-map-pin" style="color:#e65100"></i>
-          <span id="to-station">到着電停</span>
-        </div>
-      </div>
-
-      <!-- ▼ 検索結果 -->
-      <div id="route-result" class="route-result">
-        <div id="next-train-result" class="result-item">
-          <i class="ti ti-train"></i> 次の電車：—
-        </div>
-        <div id="fare-result" class="result-item">
-          <i class="ti ti-cash"></i> 運賃：—
-        </div>
-      </div>
-
-      <button class="search-btn" onclick="searchRoute()">
-        <i class="ti ti-search"></i> 時刻・運賃を調べる
-      </button>
-
+  <div class="search-row">
+    <div class="station-input" onclick="selectStation('from')">
+      <i class="ti ti-circle-dot" style="color:#e65100"></i>
+      <span id="from-station">出発電停</span>
     </div>
+
+    <div class="swap-btn" onclick="swapStations()">
+      <i class="ti ti-arrows-up-down"></i>
+    </div>
+
+    <div class="station-input" onclick="selectStation('to')">
+      <i class="ti ti-map-pin" style="color:#e65100"></i>
+      <span id="to-station">到着電停</span>
+    </div>
+  </div>
+
+  <!-- ▼ 検索ボタン -->
+  <button class="search-btn" onclick="searchRoute()">
+    <i class="ti ti-search"></i> 時刻・運賃を調べる
+  </button>
+
+  <!-- ▼ 検索結果 -->
+  <div id="route-result" class="route-result">
+    <div id="next-train-result" class="result-item">
+      <i class="ti ti-train"></i> 次の電車：—
+    </div>
+    <div id="fare-result" class="result-item">
+      <i class="ti ti-cash"></i> 運賃：—
+    </div>
+  </div>
+
+</div>
+
 
     <!-- ▼ クイックアクセス -->
     <div class="section-label">クイックアクセス</div>
@@ -197,6 +199,11 @@
   <div class="nav-item" data-page="fare" onclick="showPage('fare')">
     <i class="ti ti-cash"></i>
     <span>運賃</span>
+  </div>
+
+  <div class="nav-item" data-page="menu" onclick="showPage('menu')">
+    <i class="ti ti-menu-2"></i>
+    <span>その他</span>
   </div>
 </div>
 
