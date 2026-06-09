@@ -135,9 +135,173 @@ function closePicker() {
 /* -----------------------------------
    運賃計算（グループ表）
 ----------------------------------- */
-// ここに inoGroups / gomenGroups / fareTableIno / fareTableGomen
-// （蓮くんが送ってくれたもの）をそのまま残す
-// ※長いので省略しないで全部入れてね！
+const inoGroups = [
+  { ticket: 1, group: "1", id: 0,
+    stations: ["伊野","伊野駅前","鳴谷","北山","北内","伊野商業前","枝川",
+               "中山","八代通"]
+  },
+
+  { ticket: 2, group: "2", id: 1,
+    stations: ["宇治団地前","腔内","宮の奥","朝倉神社前","朝倉駅前"]
+  },
+
+  { ticket: 3, group: "3-1", id: 2,
+    stations: ["朝倉","曙町","曙町東町"]
+  },
+
+  { ticket: 3, group: "3-2", id: 3,
+    stations: ["鴨部"]
+  },
+
+  { ticket: 3, group: "3-3", id: 4,
+    stations: ["鏡川橋","蛍橋","旭町三丁目","旭駅前通"]
+  },
+
+  { ticket: 4, group: "4-1", id: 5,
+    stations: ["旭町一丁目","上町五丁目","上町四丁目","上町二丁目","上町一丁目",
+               "枡形","グランド通","県庁前","高知城前","大橋通","堀詰",
+               "はりまや橋","デンテツターミナルビル前","菜園場町",
+               "宝永町","知寄町一丁目","知寄町二丁目","知寄町"]
+  },
+
+  { ticket: 4, group: "4-2", id: 6,
+    stations: ["蓮池町通","高知橋","高知駅前"]
+  },
+
+  { ticket: 4, group: "4-3", id: 7,
+    stations: ["梅ノ辻","桟橋通一丁目","桟橋通二丁目","桟橋通三丁目",
+               "桟橋通四丁目","桟橋車庫前","桟橋通五丁目"]
+  },
+
+  { ticket: 4, group: "4-4", id: 8,
+    stations: ["葛島橋東詰","西高須","県立美術館通","高須","文珠通","介良通"]
+  },
+
+  { ticket: 5, group: "5-1", id: 9,
+    stations: ["新木","東新木","田辺島通","鹿児"]
+  },
+
+  { ticket: 5, group: "5-2", id: 10,
+    stations: ["舟戸"]
+  },
+
+  { ticket: 6, group: "6", id: 11,
+    stations: ["北浦","領石通","清和学園前","一条橋","明見橋","長崎"]
+  },
+
+  { ticket: 7, group: "7", id: 12,
+    stations: ["小篭通","篠原","住吉通","東工業前","後免西町","後免中町",
+               "後免東町","後免町"]
+  }
+];
+
+const gomenGroups = [
+  { ticket: 1, group: "1", id: 0,
+    stations: ["伊野","伊野駅前","鳴谷","北山","北内","伊野商業前","枝川","中山"]
+  },
+
+  { ticket: 2, group: "2", id: 1,
+    stations: ["八代通","宇治団地前","腔内","宮の奥","朝倉神社前"]
+  },
+
+  { ticket: 3, group: "3", id: 2,
+    stations: ["朝倉駅前","朝倉","曙町"]
+  },
+
+  { ticket: 4, group: "4-1", id: 3,
+    stations: ["曙町東町"]
+  },
+
+  { ticket: 4, group: "4-2", id: 4,
+    stations: ["鴨部","鏡川橋","蛍橋","旭町三丁目"]
+  },
+
+  { ticket: 4, group: "4-3", id: 5,
+    stations: ["旭駅前通","旭町一丁目","上町五丁目","上町四丁目","上町二丁目",
+               "上町一丁目","枡形","グランド通","県庁前","高知城前","大橋通",
+               "堀詰","はりまや橋","デンテツターミナルビル前","菜園場町",
+               "宝永町","知寄町一丁目","知寄町二丁目","知寄町"]
+  },
+
+  { ticket: 4, group: "4-4", id: 6,
+    stations: ["蓮池町通","高知橋","高知駅前"]
+  },
+
+  { ticket: 4, group: "4-5", id: 7,
+    stations: ["梅ノ辻","桟橋通一丁目","桟橋通二丁目","桟橋通三丁目",
+               "桟橋通四丁目","桟橋車庫前","桟橋通五丁目"]
+  },
+
+  { ticket: 5, group: "5-1", id: 8,
+    stations: ["知寄町三丁目","葛島橋東詰","西高須","県立美術館通","高須","文珠通"]
+  },
+
+  { ticket: 5, group: "5-2", id: 9,
+    stations: ["介良通","新木","東新木","田辺島通"]
+  },
+
+  { ticket: 6, group: "6-1", id: 10,
+    stations: ["鹿児"]
+  },
+
+  { ticket: 6, group: "6-2", id: 11,
+    stations: ["舟戸","北浦","領石通","清和学園前","一条橋","明見橋"]
+  },
+
+  { ticket: 7, group: "7", id: 12,
+    stations: ["長崎","小篭通","篠原","住吉通","東工業前",
+               "後免西町","後免東町","後免町"]
+  }
+];
+
+function getTicketGroup(direction, station) {
+  const groups = direction === "ino" ? inoGroups : gomenGroups;
+  for (const g of groups) {
+    if (g.stations.includes(station)) {
+      return {
+        ticket: g.ticket,  
+        group: g.group,     
+        id: g.id            
+      };
+    }
+  }
+
+  return null;
+}
+
+const fareTableIno = [
+  //       0    1     2     3     4     5     6     7     8     9    10    11    12
+  /*0*/ [150, null, null, null, null, null, null, null, null, null, null, null, null],
+  /*1*/ [250, 150, null, null, null, null, null, null, null, null, null, null, null],
+  /*2*/ [330, 250, 150, null, null, null, null, null, null, null, null, null, null],
+  /*3*/ [330, 250, 150, 150, null, null, null, null, null, null, null, null, null],
+  /*4*/ [330,  50, 150, 150, 150, null, null, null, null, null, null, null, null],
+  /*5*/ [500, 440, 330, 230, 230, 230, null, null, null, null, null, null, null],
+  /*6*/ [500, 440, 340, 230, 230, 230, 230, null, null, null, null, null, null],
+  /*7*/ [500, 440, 330, 230, 230, 230, 230, 230, null, null, null, null, null],
+  /*8*/ [500, 440, 330, 230, 230, 230, 230, 230, 150, null, null, null, null],
+  /*9*/ [500, 500, 440, 330, 330, 330, 330, 330, 150, 150, null, null, null],
+  /*10*/[500, 500, 440, 330, 330, 330, 330, 330, 150, 150, 150, null, null],
+  /*11*/[500, 500, 500, 440, 440, 440, 440, 440, 250, 250, 150, 150, null],
+  /*12*/[500, 500, 500, 500, 500, 500, 500, 500, 330, 330, 250, 250, 150]
+];
+
+const fareTableGomen = [
+  //       0    1     2     3     4     5     6     7     8     9    10    11    12
+  /*0*/ [150, 250, 330, 330, 500, 500, 500, 500, 500, 500, 500, 500, 500],
+  /*1*/ [null,150, 250, 250, 250, 440, 440, 440, 440, 500, 500, 500, 500],
+  /*2*/ [null,null,150, 150, 150, 330, 330, 330, 330, 440, 440, 500, 500],
+  /*3*/ [null,null,null,150, 150, 230, 230, 230, 230, 330, 330, 440, 500],
+  /*4*/ [null,null,null,null,150, 230, 230, 230, 230, 330, 330, 440, 500],
+  /*5*/ [null,null,null,null,null,230, 230, 230, 230, 330, 330, 440, 500],
+  /*6*/ [null,null,null,null,null,null,230, 230, 230, 330, 330, 440, 500],
+  /*7*/ [null,null,null,null,null,null,null,230, 230, 330, 330, 440, 500],
+  /*8*/ [null,null,null,null,null,null,null,null,150, 150, 150, 250, 330],
+  /*9*/ [null,null,null,null,null,null,null,null,null,150, 150, 250, 330],
+  /*10*/[null,null,null,null,null,null,null,null,null,null,150, 150, 250],
+  /*11*/[null,null,null,null,null,null,null,null,null,null,null,150, 250],
+  /*12*/[null,null,null,null,null,null,null,null,null,null,null,null,150]
+];
 
 /* -----------------------------------
    運賃計算ロジック
