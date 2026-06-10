@@ -332,15 +332,6 @@ function determineDirection(from, to) {
 /* -----------------------------------
    経路検索（運賃＋次の電車）
 ----------------------------------- */
-console.log("FROM:", from);
-console.log("TO:", to);
-
-const direction = determineDirection(from, to);
-console.log("DIRECTION:", direction);
-
-console.log("GROUP FROM:", getTicketGroup(direction, from));
-console.log("GROUP TO:", getTicketGroup(direction, to));
-
 function searchRoute() {
   const from = document.getElementById("from-station").textContent;
   const to   = document.getElementById("to-station").textContent;
