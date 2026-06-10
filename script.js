@@ -142,7 +142,7 @@ function closePicker() {
 /* -----------------------------------
    運賃計算（グループ表）
 ----------------------------------- */
-const inoGroups = [
+const GomenGroups = [
   { ticket: 1, group: "1", id: 0,
     stations: ["伊野","伊野駅前","鳴谷","北山","北内","伊野商業前","枝川",
                "中山","八代通"]
@@ -202,7 +202,7 @@ const inoGroups = [
   }
 ];
 
-const gomenGroups = [
+const InoGroups = [
   { ticket: 1, group: "1", id: 0,
     stations: ["伊野","伊野駅前","鳴谷","北山","北内","伊野商業前","枝川","中山"]
   },
