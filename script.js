@@ -333,8 +333,8 @@ function determineDirection(from, to) {
    経路検索（運賃＋次の電車）
 ----------------------------------- */
 function searchRoute() {
-  const from = document.getElementById("from-station").textContent;
-  const to   = document.getElementById("to-station").textContent;
+  const from = document.getElementById("from-station").innerText;
+  const to   = document.getElementById("to-station").innerText;
 
   if (from === "出発電停" || to === "到着電停") return;
 
