@@ -78,7 +78,7 @@ const stations = [
   { id: 57, name: "明見橋", lat: 33.574685, lng: 133.617939 },
   { id: 58, name: "長崎", lat: 33.57511, lng: 133.620894 },
   { id: 59, name: "小篭通", lat: 33.576381, lng: 133.626059 },
-  { id: 60, name: "篠原", lat: 33.577028, lng: 133.631651 },
+  { id: 60, name: "篠���", lat: 33.577028, lng: 133.631651 },
   { id: 61, name: "住吉通", lat: 33.576577, lng: 133.636476 },
   { id: 62, name: "東工業前", lat: 33.576442, lng: 133.637831 },
   { id: 63, name: "後免西町", lat: 33.575821, lng: 133.642929 },
@@ -140,9 +140,9 @@ function closePicker() {
 }
 
 /* -----------------------------------
-   運賃計算（グループ表）
+   運賃計算���グループ表）
 ----------------------------------- */
-const InoGroups = [
+const inoGroups = [
   { ticket: 1, group: "1", id: 0,
     stations: ["伊野","伊野駅前","鳴谷","北山","北内","伊野商業前","枝川",
                "中山","八代通"]
@@ -168,7 +168,7 @@ const InoGroups = [
     stations: ["旭町一丁目","上町五丁目","上町四丁目","上町二丁目","上町一丁目",
                "枡形","グランド通","県庁前","高知城前","大橋通","堀詰",
                "はりまや橋","デンテツターミナルビル前","菜園場町",
-               "宝永町","知寄町一丁目","知寄町二丁目","知寄町"]
+               "宝永町","知寄町一丁目","知寄町二丁目","���寄町"]
   },
 
   { ticket: 4, group: "4-2", id: 6,
@@ -202,7 +202,7 @@ const InoGroups = [
   }
 ];
 
-const GomenGroups = [
+const gomenGroups = [
   { ticket: 1, group: "1", id: 0,
     stations: ["伊野","伊野駅前","鳴谷","北山","北内","伊野商業前","枝川","中山"]
   },
@@ -270,7 +270,7 @@ const fareTableGomen = [
   /*1*/ [250, 150, null, null, null, null, null, null, null, null, null, null, null],
   /*2*/ [330, 250, 150, null, null, null, null, null, null, null, null, null, null],
   /*3*/ [330, 250, 150, 150, null, null, null, null, null, null, null, null, null],
-  /*4*/ [330,  50, 150, 150, 150, null, null, null, null, null, null, null, null],
+  /*4*/ [330, 250, 150, 150, 150, null, null, null, null, null, null, null, null],
   /*5*/ [500, 440, 330, 230, 230, 230, null, null, null, null, null, null, null],
   /*6*/ [500, 440, 340, 230, 230, 230, 230, null, null, null, null, null, null],
   /*7*/ [500, 440, 330, 230, 230, 230, 230, 230, null, null, null, null, null],
@@ -313,13 +313,16 @@ function getTicketGroup(direction, station) {
 
 function calcFare(direction, fromStation, toStation) {
   const fareTable = direction === "ino" ? fareTableIno : fareTableGomen;
-
   const from = getTicketGroup(direction, fromStation);
   const to   = getTicketGroup(direction, toStation);
-
+  
   if (!from || !to) return null;
-
-  return fareTable[from.id][to.id];
+  
+  if (from.id <= to.id) {
+    return fareTable[from.id][to.id];
+  } else {
+    return fareTable[to.id][from.id]; 
+  }
 }
 
 function determineDirection(from, to) {
@@ -353,12 +356,20 @@ function searchRoute() {
 /* -----------------------------------
    現在地 → 最寄り電停
 ----------------------------------- */
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // 地球の半径（km）
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) ** 2;
+  return R * 2 * Math.asin(Math.sqrt(a));
+}
+
 function findNearestStation(lat, lon) {
   let nearest = null;
   let minDist = Infinity;
 
   for (const s of stations) {
-    const dist = Math.hypot(lat - s.lat, lon - s.lng);
+    const dist = getDistance(lat, lon, s.lat, s.lng);
     if (dist < minDist) {
       minDist = dist;
       nearest = s.name;
@@ -412,16 +423,9 @@ document.addEventListener("DOMContentLoaded", initMap);
 /* -----------------------------------
    駅マーカー
 ----------------------------------- */
-const stationIcon = L.divIcon({
-  className: "station-marker",
-  html: `<div class="station-dot"></div>`,
-  iconSize: [16, 16],
-  iconAnchor: [8, 8]
-});
-
 function addStationMarkers() {
   stations.forEach(st => {
-    const marker = L.marker([st.lat, st.lng], { icon: stationIcon }).addTo(appMap);
+    const marker = L.marker([st.lat, st.lng]).addTo(appMap);
     marker.bindPopup(`<b>${st.name}</b>`);
   });
 }
