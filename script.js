@@ -264,7 +264,7 @@ const gomenGroups = [
 /* -----------------------------------
    運賃表
 ----------------------------------- */
-const fareTableGomen = [
+const fareTableIno = [
 //       0    1     2     3     4     5     6     7     8     9    10    11    12
   /*0*/ [150, null, null, null, null, null, null, null, null, null, null, null, null],
   /*1*/ [250, 150, null, null, null, null, null, null, null, null, null, null, null],
@@ -281,7 +281,7 @@ const fareTableGomen = [
   /*12*/[500, 500, 500, 500, 500, 500, 500, 500, 330, 330, 250, 250, 150]
 ];
 
-const fareTableIno = [
+const fareTableGomen = [
   //       0    1     2     3     4     5     6     7     8     9    10    11    12
   /*0*/ [150, 250, 330, 330, 500, 500, 500, 500, 500, 500, 500, 500, 500],
   /*1*/ [null,150, 250, 250, 250, 440, 440, 440, 440, 500, 500, 500, 500],
