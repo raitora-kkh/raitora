@@ -168,7 +168,7 @@ const inoGroups = [
     stations: ["旭町一丁目","上町五丁目","上町四丁目","上町二丁目","上町一丁目",
                "枡形","グランド通","県庁前","高知城前","大橋通","堀詰",
                "はりまや橋","デンテツターミナルビル前","菜園場町",
-               "宝永町","知寄町一丁目","知寄町二丁目","知寄町"]
+               "宝永町","知寄町一丁目","知寄町二丁目","知寄町","知寄町三丁目"]
   },
 
   { ticket: 4, group: "4-2", id: 6,
@@ -272,7 +272,7 @@ const fareTableIno = [
   /*3*/ [330, 250, 150, 150, null, null, null, null, null, null, null, null, null],
   /*4*/ [330, 250, 150, 150, 150, null, null, null, null, null, null, null, null],
   /*5*/ [500, 440, 330, 230, 230, 230, null, null, null, null, null, null, null],
-  /*6*/ [500, 440, 340, 230, 230, 230, 230, null, null, null, null, null, null],
+  /*6*/ [500, 440, 330, 230, 230, 230, 230, null, null, null, null, null, null],
   /*7*/ [500, 440, 330, 230, 230, 230, 230, 230, null, null, null, null, null],
   /*8*/ [500, 440, 330, 230, 230, 230, 230, 230, 150, null, null, null, null],
   /*9*/ [500, 500, 440, 330, 330, 330, 330, 330, 150, 150, null, null, null],
@@ -283,7 +283,7 @@ const fareTableIno = [
 
 const fareTableGomen = [
   //       0    1     2     3     4     5     6     7     8     9    10    11    12
-  /*0*/ [150, 250, 330, 330, 500, 500, 500, 500, 500, 500, 500, 500, 500],
+  /*0*/ [150, 250, 330, 330, 330, 500, 500, 500, 500, 500, 500, 500, 500],
   /*1*/ [null,150, 250, 250, 250, 440, 440, 440, 440, 500, 500, 500, 500],
   /*2*/ [null,null,150, 150, 150, 330, 330, 330, 330, 440, 440, 500, 500],
   /*3*/ [null,null,null,150, 150, 230, 230, 230, 230, 330, 330, 440, 500],
@@ -312,24 +312,20 @@ function getTicketGroup(direction, station) {
 }
 
 function calcFare(direction, fromStation, toStation) {
-  const fareTable = direction === "ino" ? fareTableIno : fareTableGomen;
   const from = getTicketGroup(direction, fromStation);
-  const to   = getTicketGroup(direction, toStation);
+  
+  const reverseDirection = direction === "ino" ? "gomen" : "ino";
+  const to = getTicketGroup(reverseDirection, toStation);
   
   if (!from || !to) return null;
   
-  if (from.id <= to.id) {
-    return fareTable[from.id][to.id];
-  } else {
-    return fareTable[to.id][from.id]; 
-  }
+  const fareTable = direction === "ino" ? fareTableIno : fareTableGomen;
+  return fareTable[from.id][to.id];
 }
 
 function determineDirection(from, to) {
-  for (const g of inoGroups) {
-    if (g.stations.includes(from)) return "ino";
-  }
-  return "gomen";
+  const inInoGroups = inoGroups.some(g => g.stations.includes(from));
+  return inInoGroups ? "ino" : "gomen";
 }
 
 /* -----------------------------------
