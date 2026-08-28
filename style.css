@@ -348,3 +348,97 @@ body {
   border: 2px solid white;
   box-shadow: 0 0 4px rgba(0,0,0,0.3);
 }
+
+/* -----------------------------------
+   運賃表ページ
+----------------------------------- */
+.fare-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.fare-tab-btn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.fare-tab-btn.active {
+  background: #e65100;
+  color: white;
+  border-color: #e65100;
+}
+
+.fare-table-wrapper {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+.fare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.fare-table thead {
+  background: #f5f5f5;
+}
+
+.fare-table th {
+  padding: 8px 4px;
+  text-align: center;
+  border: 1px solid #eee;
+  font-weight: 600;
+  color: #333;
+  background: #f9f9f9;
+  max-width: 50px;
+}
+
+.fare-table td {
+  padding: 8px 4px;
+  text-align: center;
+  border: 1px solid #eee;
+  color: #333;
+}
+
+.fare-table tbody tr:first-child td {
+  background: #f9f9f9;
+  font-weight: 600;
+}
+
+.fare-table tbody td:first-child {
+  background: #f9f9f9;
+  font-weight: 600;
+  text-align: left;
+  padding-left: 8px;
+  max-width: 100px;
+  white-space: nowrap;
+}
+
+.fare-table td.fare-value {
+  background: #fff;
+}
+
+.fare-table td.fare-value:hover {
+  background: #fff3e0;
+}
+
+.fare-legend {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  color: #666;
+  border-left: 3px solid #e65100;
+}

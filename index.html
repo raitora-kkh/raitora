@@ -168,7 +168,24 @@
 <!-- ▼ 運賃ページ -->
 <div id="page-fare" class="page">
   <div class="content">
-    <h2>運賃</h2>
+    <h2>運賃表</h2>
+    
+    <div class="fare-tabs">
+      <button class="fare-tab-btn active" onclick="switchFareTab('ino')">伊野線</button>
+      <button class="fare-tab-btn" onclick="switchFareTab('gomen')">後免線</button>
+    </div>
+
+    <div id="fare-table-container" class="fare-table-wrapper">
+      <table class="fare-table" id="fare-table">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="fare-legend">
+      <p><strong>見方：</strong>左側の電停から上の電停までの運賃です</p>
+      <p style="font-size:12px; color:#666; margin-top:8px;">例）伊野から高知駅前の運賃を知りたい場合、左側で伊野を見つけ、上で高知駅前の列を探します</p>
+    </div>
   </div>
 </div>
 

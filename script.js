@@ -139,6 +139,13 @@ function closePicker() {
   document.getElementById("picker-overlay").style.display = "none";
 }
 
+function swapStations() {
+  const from = document.getElementById("from-station").textContent;
+  const to = document.getElementById("to-station").textContent;
+  document.getElementById("from-station").textContent = to;
+  document.getElementById("to-station").textContent = from;
+}
+
 /* -----------------------------------
    運賃計算（グループ表）
 ----------------------------------- */
@@ -421,8 +428,82 @@ document.addEventListener("DOMContentLoaded", initMap);
 ----------------------------------- */
 function addStationMarkers() {
   stations.forEach(st => {
-    // icon: stationIcon を削除
     const marker = L.marker([st.lat, st.lng]).addTo(appMap);
     marker.bindPopup(`<b>${st.name}</b>`);
   });
 }
+
+/* -----------------------------------
+   運賃表ページ
+----------------------------------- */
+let currentFareTab = "ino";
+
+function switchFareTab(tab) {
+  currentFareTab = tab;
+  
+  // タブボタンの状態更新
+  document.querySelectorAll('.fare-tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  
+  // 運賃表を再生成
+  renderFareTable();
+}
+
+function getGroupNames(direction) {
+  const groups = direction === "ino" ? inoGroups : gomenGroups;
+  return groups.map(g => g.group);
+}
+
+function renderFareTable() {
+  const table = document.getElementById('fare-table');
+  const thead = table.querySelector('thead');
+  const tbody = table.querySelector('tbody');
+  
+  const groups = currentFareTab === "ino" ? inoGroups : gomenGroups;
+  const fareTable = currentFareTab === "ino" ? fareTableIno : fareTableGomen;
+  
+  // ヘッダーを構築
+  thead.innerHTML = '';
+  const headerRow = document.createElement('tr');
+  headerRow.innerHTML = '<th style="text-align:left; background:#fff;">ゾーン</th>';
+  
+  groups.forEach(g => {
+    const th = document.createElement('th');
+    th.textContent = g.group;
+    headerRow.appendChild(th);
+  });
+  
+  thead.appendChild(headerRow);
+  
+  // テーブルボディを構築
+  tbody.innerHTML = '';
+  
+  groups.forEach((fromGroup, fromIdx) => {
+    const row = document.createElement('tr');
+    
+    // 最初の列：グループ名
+    const firstTd = document.createElement('td');
+    firstTd.textContent = fromGroup.group;
+    row.appendChild(firstTd);
+    
+    // 各ゾーンへの料金
+    groups.forEach((toGroup, toIdx) => {
+      const td = document.createElement('td');
+      td.className = 'fare-value';
+      
+      const fare = fareTable[fromIdx][toIdx];
+      td.textContent = fare !== null ? `${fare}円` : '—';
+      
+      row.appendChild(td);
+    });
+    
+    tbody.appendChild(row);
+  });
+}
+
+// ページロード時に運賃表を初期化
+document.addEventListener("DOMContentLoaded", () => {
+  renderFareTable();
+});
