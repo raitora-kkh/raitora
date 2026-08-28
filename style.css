@@ -383,54 +383,50 @@ body {
   border: 1px solid #ddd;
   overflow-x: auto;
   margin-bottom: 16px;
+  padding: 12px;
 }
 
-.fare-table {
+.fare-table-detailed {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 11px;
+  min-width: 600px;
 }
 
-.fare-table thead {
-  background: #f5f5f5;
-}
-
-.fare-table th {
-  padding: 8px 4px;
-  text-align: center;
+.fare-table-detailed th,
+.fare-table-detailed td {
   border: 1px solid #eee;
+  padding: 6px 4px;
+  text-align: center;
+}
+
+.fare-table-detailed th {
+  background: #f9f9f9;
   font-weight: 600;
   color: #333;
-  background: #f9f9f9;
+  word-break: break-word;
   max-width: 50px;
 }
 
-.fare-table td {
-  padding: 8px 4px;
-  text-align: center;
-  border: 1px solid #eee;
-  color: #333;
-}
-
-.fare-table tbody tr:first-child td {
+.fare-table-detailed tbody tr:first-child td {
   background: #f9f9f9;
   font-weight: 600;
 }
 
-.fare-table tbody td:first-child {
+.fare-table-detailed tbody td:first-child {
   background: #f9f9f9;
   font-weight: 600;
   text-align: left;
   padding-left: 8px;
-  max-width: 100px;
+  max-width: 80px;
   white-space: nowrap;
 }
 
-.fare-table td.fare-value {
+.fare-table-detailed td:not(:first-child) {
   background: #fff;
 }
 
-.fare-table td.fare-value:hover {
+.fare-table-detailed td:not(:first-child):hover {
   background: #fff3e0;
 }
 
