@@ -344,7 +344,7 @@ const inoStationOrder = [
 ];
 
 /* -----------------------------------
-   運賃計算ロジック
+   運賃計算ロジック（修正版）
 ----------------------------------- */
 function getTicketGroup(direction, station) {
   const groups = direction === "ino" ? inoGroups : gomenGroups;
@@ -358,9 +358,7 @@ function getTicketGroup(direction, station) {
 
 function calcFare(direction, fromStation, toStation) {
   const from = getTicketGroup(direction, fromStation);
-  
-  const reverseDirection = direction === "ino" ? "gomen" : "ino";
-  const to = getTicketGroup(reverseDirection, toStation);
+  const to = getTicketGroup(direction, toStation);  // ✅ 修正：同じ方向で取得
   
   if (!from || !to) return null;
   
@@ -466,14 +464,15 @@ function updateCurrentLocation() {
 window.addEventListener("load", updateCurrentLocation);
 
 /* -----------------------------------
-   地図（Leaflet）
+   地図（Leaflet）✅ 修正版
 ----------------------------------- */
 function initMap() {
   const map = L.map('map').setView([33.559530, 133.542865], 14);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  // ✅ タイルプロバイダーを変更（日本の地図で制限なし）
+  L.tileLayer('https://tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
     maxZoom: 19,
-    attribution: '© OpenStreetMap'
+    attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
   window.appMap = map;
